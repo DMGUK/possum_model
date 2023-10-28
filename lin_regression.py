@@ -1,62 +1,53 @@
+import pandas as pd
 import numpy as np
-import pandas as pnd
+import math
+import operator
 import matplotlib.pyplot as plt
 
-df = pnd.read_csv('possum.csv') 
-df.head() 
 
-print(df.shape)
+data = pd.read_csv('possum.csv')
+print(data.to_string())
 
-hdl = df['hdlngth'].values.reshape(-1, 1) 
-totl = df['totlngth'].values.reshape(-1, 1) 
+X = data['hdlngth'].values
+Y = data['totlngth'].values
 
+mean_x = np.mean(X)
+mean_y = np.mean(Y)
 
-class Linear_Regression(): 
+m = len(X)
 
-	def __init__(self, learning_rate, no_of_itr): 
-		self.learning_rate = learning_rate 
-		self.no_of_itr = no_of_itr 
+numer = 0
+denom = 0
+for i in range(m):
+  numer += (X[i] - mean_x) * (Y[i] - mean_y)
+  denom += (X[i] - mean_x) ** 2
+m = numer / denom
+c = mean_y - (m * mean_x)
 
-	def fit(self, hdl, totl): 
+print (f'm = {m} \nc = {c}')
 
-		self.m, self.n = hdl.shape	  
-		self.w = np.zeros((self.n, 1)) 
-		self.b = 0
-		self.hdl = hdl
-		self.totl = totl 
+max_x = np.max(X)
+min_x = np.min(Y)
 
-		for i in range(self.no_of_itr): 
-			self.update_weigths() 
+# calculating line values x and y
+x = np.linspace (min_x, max_x)
+y = c + m * x
 
-	def update_weigths(self): 
-		Y_prediction = self.predict(self.hdl) 
+plt.plot(x, y, color='#58b970', label='Regression Line')
+plt.scatter(X, Y, c='#ef5423', label='data points')
 
-		dw = -(self.hdl.T).dot(self.totl - Y_prediction)/self.m 
+plt.xlabel('Head length, in mm')
+plt.ylabel('Total length, in cm')
+plt.legend()
+plt.show()
 
-		db = -np.sum(self.totl - Y_prediction)/self.m 
+ss_t = 0
+ss_r = 0
 
-		self.w = self.w - self.learning_rate * dw 
-		self.b = self.b - self.learning_rate * db 
+for i in range(int(len(X))): 
+  y_pred = c + m * X[i]
+  ss_t += (Y[i] - mean_y) ** 2
+  ss_r += (Y[i] - y_pred) ** 2
+r2 = 1 - (ss_r/ss_t)
 
-	def predict(self, hdl): 
-		return hdl.dot(self.w) + self.b 
-
-	def print_weights(self): 
-		print('Weights for the respective features are :') 
-		print(self.w) 
-		print() 
-
-		print('Bias value for the regression is ', self.b) 
-
-model = Linear_Regression(learning_rate=0.03, 
-                          no_of_itr=2000) 
-model.fit(hdl, totl) 
-
-plt.scatter(df['hdlngth'], df['totlngth']) 
-plt.xlabel('Possum Head Length') 
-plt.ylabel('Possum Total Length') 
-plt.title('Head Length v/s Total Length') 
-  
-X = df['hdlngth'].values 
-plt.plot(X, 1 * X + 2) 
-plt.show() 
+print(r2)
